@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 st.title("💰 Personal Expense Tracker")
 
@@ -44,20 +44,19 @@ if not df.empty:
     st.metric("Total Spent", f"${total_spent:.2f}")
 
     # Category-wise breakdown
-    category_summary = df.groupby("Category")["Amount"].sum()
+    category_summary = df.groupby("Category")["Amount"].sum().reset_index()
 
-    # Bar Chart
+    # Bar Chart using Plotly
     st.subheader("💡 Category-wise Spending")
-    st.bar_chart(category_summary)
+    fig_bar = px.bar(category_summary, x="Category", y="Amount", title="Category-wise Spending")
+    st.plotly_chart(fig_bar)
 
-    # Pie Chart
-    fig, ax = plt.subplots()
-    ax.pie(category_summary, labels=category_summary.index, autopct='%1.1f%%', startangle=90)
-    ax.axis("equal")  
-    st.pyplot(fig)
+    # Pie Chart using Plotly
+    st.subheader("🍰 Category-wise Distribution")
+    fig_pie = px.pie(category_summary, values="Amount", names="Category", title="Category-wise Distribution")
+    st.plotly_chart(fig_pie)
 else:
     st.warning("No expenses recorded yet!")
-
 
 
 
