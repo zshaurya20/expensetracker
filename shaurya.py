@@ -62,16 +62,16 @@ elif page == "Expense Statistics":
         # Category-wise breakdown
         st.subheader("💡 Category-wise Spending")
         category_summary = df.groupby("Category")["Amount"].sum().reset_index()
-        st.table(category_summary)
+        st.bar_chart(category_summary.set_index("Category"))
 
         # Monthly Spending Trend
         st.subheader("📈 Monthly Spending Trend")
-        df["Date"] = pd.to_datetime(df["Date"])
+        df["Date"] = pd.to_datetime(df["Date"])  # Convert 'Date' to datetime
         monthly_summary = df.resample("M", on="Date")["Amount"].sum().reset_index()
         st.line_chart(monthly_summary.set_index("Date"))
 
-        # Expense Distribution (Pie Chart Alternative)
-        st.subheader("🍰 Expense Distribution")
-        st.bar_chart(category_summary.set_index("Category"))
+        # Display raw data for debugging (optional)
+        st.subheader("Raw Data for Debugging")
+        st.write(monthly_summary)
     else:
         st.warning("No expenses recorded yet!")
