@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 st.title("💰 Personal Expense Tracker")
 
@@ -36,29 +35,16 @@ if st.button("Add Expense"):
 st.subheader("📋 Your Expenses")
 st.dataframe(df)
 
-# Stats and Charts
+# Stats
 st.subheader("📊 Expense Statistics")
 
 if not df.empty:
     total_spent = df["Amount"].sum()
     st.metric("Total Spent", f"${total_spent:.2f}")
 
-    # Category-wise breakdown
-    category_summary = df.groupby("Category")["Amount"].sum()
-
-    # Bar Chart using Matplotlib
+    # Category-wise breakdown (as a table)
     st.subheader("💡 Category-wise Spending")
-    fig, ax = plt.subplots()
-    category_summary.plot(kind="bar", ax=ax)
-    ax.set_ylabel("Amount ($)")
-    ax.set_title("Category-wise Spending")
-    st.pyplot(fig)
-
-    # Pie Chart using Matplotlib
-    st.subheader("🍰 Category-wise Distribution")
-    fig, ax = plt.subplots()
-    ax.pie(category_summary, labels=category_summary.index, autopct='%1.1f%%', startangle=90)
-    ax.axis("equal")  # Equal aspect ratio ensures the pie chart is circular.
-    st.pyplot(fig)
+    category_summary = df.groupby("Category")["Amount"].sum().reset_index()
+    st.table(category_summary)
 else:
     st.warning("No expenses recorded yet!")
