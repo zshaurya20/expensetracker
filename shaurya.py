@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import matplotlib.pyplot as plt
 
 st.title("💰 Personal Expense Tracker")
 
@@ -44,20 +44,21 @@ if not df.empty:
     st.metric("Total Spent", f"${total_spent:.2f}")
 
     # Category-wise breakdown
-    category_summary = df.groupby("Category")["Amount"].sum().reset_index()
+    category_summary = df.groupby("Category")["Amount"].sum()
 
-    # Bar Chart using Plotly
+    # Bar Chart using Matplotlib
     st.subheader("💡 Category-wise Spending")
-    fig_bar = px.bar(category_summary, x="Category", y="Amount", title="Category-wise Spending")
-    st.plotly_chart(fig_bar)
+    fig, ax = plt.subplots()
+    category_summary.plot(kind="bar", ax=ax)
+    ax.set_ylabel("Amount ($)")
+    ax.set_title("Category-wise Spending")
+    st.pyplot(fig)
 
-    # Pie Chart using Plotly
+    # Pie Chart using Matplotlib
     st.subheader("🍰 Category-wise Distribution")
-    fig_pie = px.pie(category_summary, values="Amount", names="Category", title="Category-wise Distribution")
-    st.plotly_chart(fig_pie)
+    fig, ax = plt.subplots()
+    ax.pie(category_summary, labels=category_summary.index, autopct='%1.1f%%', startangle=90)
+    ax.axis("equal")  # Equal aspect ratio ensures the pie chart is circular.
+    st.pyplot(fig)
 else:
     st.warning("No expenses recorded yet!")
-
-
-
-
