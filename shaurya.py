@@ -13,7 +13,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
+            password TEXT NOT NULL,
+            monthly_budget REAL DEFAULT 0
         )
         """
     )
@@ -58,6 +59,28 @@ def authenticate_user(username, password):
     conn.close()
     return user[0] if user else None
 
+def reset_password(username, new_password):
+    conn = sqlite3.connect("expense_tracker.db")
+    c = conn.cursor()
+    c.execute("UPDATE users SET password = ? WHERE username = ?", (new_password, username))
+    conn.commit()
+    conn.close()
+
+def get_user_budget(user_id):
+    conn = sqlite3.connect("expense_tracker.db")
+    c = conn.cursor()
+    c.execute("SELECT monthly_budget FROM users WHERE id = ?", (user_id,))
+    budget = c.fetchone()[0]
+    conn.close()
+    return budget
+
+def set_user_budget(user_id, budget):
+    conn = sqlite3.connect("expense_tracker.db")
+    c = conn.cursor()
+    c.execute("UPDATE users SET monthly_budget = ? WHERE id = ?", (budget, user_id))
+    conn.commit()
+    conn.close()
+
 # Expense functions
 def add_expense(user_id, date, category, amount):
     conn = sqlite3.connect("expense_tracker.db")
@@ -86,16 +109,52 @@ def delete_expense(user_id, expense_id):
 
 # Streamlit app
 def main():
+    # Custom theme toggle
+    st.sidebar.title("Theme")
+    theme = st.sidebar.radio("Choose a theme", ["Light", "Dark"])
+
+    # Apply custom theme
+    if theme == "Dark":
+        st.markdown(
+            """
+            <style>
+            .stApp {
+                background-color: #1E1E1E;
+                color: #FFFFFF;
+            }
+            .st-bb, .st-at, .st-ax, .st-ay, .st-az, .st-b0, .st-b1, .st-b2, .st-b3, .st-b4, .st-b5, .st-b6, .st-b7, .st-b8, .st-b9, .st-ba {
+                color: #FFFFFF !important;
+            }
+            .st-bv, .st-bw, .st-bx, .st-by, .st-bz, .st-c0, .st-c1, .st-c2, .st-c3, .st-c4, .st-c5, .st-c6, .st-c7, .st-c8, .st-c9, .st-ca {
+                background-color: #2E2E2E !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            """
+            <style>
+            .stApp {
+                background-color: #FFFFFF;
+                color: #000000;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
     st.title("💰 Personal Expense Tracker")
 
     # Session state for user authentication
     if "user_id" not in st.session_state:
         st.session_state.user_id = None
 
-    # Login/Signup page
+    # Login/Signup/Forgot Password page
     if st.session_state.user_id is None:
-        st.sidebar.title("Login / Signup")
-        choice = st.sidebar.radio("Choose an option", ["Login", "Signup"])
+        st.sidebar.title("Login / Signup / Forgot Password")
+        choice = st.sidebar.radio("Choose an option", ["Login", "Signup", "Forgot Password"])
 
         if choice == "Login":
             st.subheader("Login")
@@ -117,16 +176,24 @@ def main():
                 if create_user(username, password):
                     st.success("Account created successfully! Please log in.")
 
+        elif choice == "Forgot Password":
+            st.subheader("Forgot Password")
+            username = st.text_input("Enter your username")
+            new_password = st.text_input("Enter a new password", type="password")
+            if st.button("Reset Password"):
+                reset_password(username, new_password)
+                st.success("Password reset successfully! Please log in with your new password.")
+
     # Main app functionality
     if st.session_state.user_id is not None:
         st.sidebar.title("Navigation")
-        page = st.sidebar.radio("Go to", ["Add Expense", "View Expenses", "Expense Statistics"])
+        page = st.sidebar.radio("Go to", ["Add Expense", "View Expenses", "Expense Statistics", "Set Budget"])
 
         # Page 1: Add Expense
         if page == "Add Expense":
             st.subheader("Add New Expense")
             date = st.date_input("Date")
-            category = st.selectbox("Category", ["Food", "Transport", "Entertainment", "Bills", "Shopping", "Others"])
+            category = st.text_input("Category (e.g., Food, Transport, etc.)")
             amount = st.number_input("Amount ($)", min_value=0.0, format="%.2f")
             if st.button("Add Expense"):
                 add_expense(st.session_state.user_id, date, category, amount)
@@ -137,6 +204,17 @@ def main():
             st.subheader("📋 Your Expenses")
             expenses_df = get_expenses(st.session_state.user_id)
             st.dataframe(expenses_df)
+
+            # Export expenses to CSV
+            if not expenses_df.empty:
+                st.subheader("Export Expenses")
+                csv = expenses_df.to_csv(index=False).encode("utf-8")
+                st.download_button(
+                    label="Download Expenses as CSV",
+                    data=csv,
+                    file_name="expenses.csv",
+                    mime="text/csv",
+                )
 
             # Option to delete an expense
             if not expenses_df.empty:
@@ -157,6 +235,15 @@ def main():
                 total_spent = expenses_df["Amount"].sum()
                 st.metric("Total Spent", f"${total_spent:.2f}")
 
+                # Check monthly budget
+                budget = get_user_budget(st.session_state.user_id)
+                if budget > 0:
+                    st.metric("Monthly Budget", f"${budget:.2f}")
+                    if total_spent > budget:
+                        st.error("You have exceeded your monthly budget!")
+                    else:
+                        st.success(f"You have ${budget - total_spent:.2f} left in your budget.")
+
                 # Category-wise breakdown
                 st.subheader("💡 Category-wise Spending")
                 category_summary = expenses_df.groupby("Category")["Amount"].sum().reset_index()
@@ -169,6 +256,14 @@ def main():
                 st.line_chart(monthly_summary.set_index("Date"))
             else:
                 st.warning("No expenses recorded yet!")
+
+        # Page 4: Set Budget
+        elif page == "Set Budget":
+            st.subheader("Set Monthly Budget")
+            budget = st.number_input("Enter your monthly budget ($)", min_value=0.0, format="%.2f")
+            if st.button("Set Budget"):
+                set_user_budget(st.session_state.user_id, budget)
+                st.success("Monthly budget set successfully!")
 
         # Logout button
         if st.sidebar.button("Logout"):
