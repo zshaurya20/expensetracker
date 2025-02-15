@@ -70,9 +70,9 @@ def get_user_budget(user_id):
     conn = sqlite3.connect("expense_tracker.db")
     c = conn.cursor()
     c.execute("SELECT monthly_budget FROM users WHERE id = ?", (user_id,))
-    budget = c.fetchone()[0]
+    result = c.fetchone()
     conn.close()
-    return budget
+    return result[0] if result else 0  # Return 0 if no budget is set
 
 def set_user_budget(user_id, budget):
     conn = sqlite3.connect("expense_tracker.db")
@@ -109,82 +109,6 @@ def delete_expense(user_id, expense_id):
 
 # Streamlit app
 def main():
-    # Custom theme toggle
-    st.sidebar.title("Theme")
-    theme = st.sidebar.radio("Choose a theme", ["Light", "Dark"])
-
-    # Apply custom theme
-    if theme == "Dark":
-        st.markdown(
-            """
-            <style>
-            .stApp {
-                background-color: #1E1E1E;
-                color: #FFFFFF;
-            }
-            .st-bb, .st-at, .st-ax, .st-ay, .st-az, .st-b0, .st-b1, .st-b2, .st-b3, .st-b4, .st-b5, .st-b6, .st-b7, .st-b8, .st-b9, .st-ba {
-                color: #FFFFFF !important;
-            }
-            .st-bv, .st-bw, .st-bx, .st-by, .st-bz, .st-c0, .st-c1, .st-c2, .st-c3, .st-c4, .st-c5, .st-c6, .st-c7, .st-c8, .st-c9, .st-ca {
-                background-color: #2E2E2E !important;
-            }
-            .stDataFrame {
-                background-color: #2E2E2E !important;
-                color: #FFFFFF !important;
-            }
-            .stButton button {
-                background-color: #4CAF50;
-                color: white;
-            }
-            .stTextInput input {
-                background-color: #2E2E2E;
-                color: #FFFFFF;
-            }
-            .stNumberInput input {
-                background-color: #2E2E2E;
-                color: #FFFFFF;
-            }
-            .stSelectbox select {
-                background-color: #2E2E2E;
-                color: #FFFFFF;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(
-            """
-            <style>
-            .stApp {
-                background-color: #FFFFFF;
-                color: #000000;
-            }
-            .stDataFrame {
-                background-color: #FFFFFF !important;
-                color: #000000 !important;
-            }
-            .stButton button {
-                background-color: #4CAF50;
-                color: white;
-            }
-            .stTextInput input {
-                background-color: #FFFFFF;
-                color: #000000;
-            }
-            .stNumberInput input {
-                background-color: #FFFFFF;
-                color: #000000;
-            }
-            .stSelectbox select {
-                background-color: #FFFFFF;
-                color: #000000;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-
     st.title("💰 Personal Expense Tracker")
 
     # Session state for user authentication
@@ -243,10 +167,10 @@ def main():
         elif page == "View Expenses":
             st.subheader("📋 Your Expenses")
             expenses_df = get_expenses(st.session_state.user_id)
-            st.dataframe(expenses_df)
-
-            # Export expenses to CSV
             if not expenses_df.empty:
+                st.dataframe(expenses_df)
+
+                # Export expenses to CSV
                 st.subheader("Export Expenses")
                 csv = expenses_df.to_csv(index=False).encode("utf-8")
                 st.download_button(
@@ -256,14 +180,15 @@ def main():
                     mime="text/csv",
                 )
 
-            # Option to delete an expense
-            if not expenses_df.empty:
+                # Option to delete an expense
                 st.subheader("Delete an Expense")
                 delete_index = st.number_input("Enter the ID of the expense to delete", min_value=1, max_value=expenses_df["ID"].max(), value=1)
                 if st.button("Delete Expense"):
                     delete_expense(st.session_state.user_id, delete_index)
                     st.success("Expense deleted successfully!")
                     st.experimental_rerun()  # Refresh the page
+            else:
+                st.warning("No expenses recorded yet!")
 
         # Page 3: Expense Statistics
         elif page == "Expense Statistics":
