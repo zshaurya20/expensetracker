@@ -7,10 +7,7 @@ from datetime import datetime
 def init_db():
     conn = sqlite3.connect("expense_tracker.db")
     c = conn.cursor()
-    # Drop existing tables if they exist (for debugging purposes)
-    c.execute("DROP TABLE IF EXISTS users")
-    c.execute("DROP TABLE IF EXISTS expenses")
-    # Create users table with monthly_budget column
+    # Create users table
     c.execute(
         """
         CREATE TABLE IF NOT EXISTS users (
@@ -112,6 +109,82 @@ def delete_expense(user_id, expense_id):
 
 # Streamlit app
 def main():
+    # Custom theme toggle
+    st.sidebar.title("Theme")
+    theme = st.sidebar.radio("Choose a theme", ["Light", "Dark"])
+
+    # Apply custom theme
+    if theme == "Dark":
+        st.markdown(
+            """
+            <style>
+            .stApp {
+                background-color: #1E1E1E;
+                color: #FFFFFF;
+            }
+            .st-bb, .st-at, .st-ax, .st-ay, .st-az, .st-b0, .st-b1, .st-b2, .st-b3, .st-b4, .st-b5, .st-b6, .st-b7, .st-b8, .st-b9, .st-ba {
+                color: #FFFFFF !important;
+            }
+            .st-bv, .st-bw, .st-bx, .st-by, .st-bz, .st-c0, .st-c1, .st-c2, .st-c3, .st-c4, .st-c5, .st-c6, .st-c7, .st-c8, .st-c9, .st-ca {
+                background-color: #2E2E2E !important;
+            }
+            .stDataFrame {
+                background-color: #2E2E2E !important;
+                color: #FFFFFF !important;
+            }
+            .stButton button {
+                background-color: #4CAF50;
+                color: white;
+            }
+            .stTextInput input {
+                background-color: #2E2E2E;
+                color: #FFFFFF;
+            }
+            .stNumberInput input {
+                background-color: #2E2E2E;
+                color: #FFFFFF;
+            }
+            .stSelectbox select {
+                background-color: #2E2E2E;
+                color: #FFFFFF;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            """
+            <style>
+            .stApp {
+                background-color: #FFFFFF;
+                color: #000000;
+            }
+            .stDataFrame {
+                background-color: #FFFFFF !important;
+                color: #000000 !important;
+            }
+            .stButton button {
+                background-color: #4CAF50;
+                color: white;
+            }
+            .stTextInput input {
+                background-color: #FFFFFF;
+                color: #000000;
+            }
+            .stNumberInput input {
+                background-color: #FFFFFF;
+                color: #000000;
+            }
+            .stSelectbox select {
+                background-color: #FFFFFF;
+                color: #000000;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
     st.title("💰 Personal Expense Tracker")
 
     # Session state for user authentication
