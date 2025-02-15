@@ -95,10 +95,10 @@ def add_expense(user_id, date, category, amount):
 def get_expenses(user_id):
     conn = sqlite3.connect("expense_tracker.db")
     c = conn.cursor()
-    c.execute("SELECT date, category, amount FROM expenses WHERE user_id = ?", (user_id,))
+    c.execute("SELECT id, date, category, amount FROM expenses WHERE user_id = ?", (user_id,))
     expenses = c.fetchall()
     conn.close()
-    return pd.DataFrame(expenses, columns=["Date", "Category", "Amount"])
+    return pd.DataFrame(expenses, columns=["ID", "Date", "Category", "Amount"])
 
 def delete_expense(user_id, expense_id):
     conn = sqlite3.connect("expense_tracker.db")
@@ -259,9 +259,9 @@ def main():
             # Option to delete an expense
             if not expenses_df.empty:
                 st.subheader("Delete an Expense")
-                delete_index = st.number_input("Enter the index of the expense to delete", min_value=0, max_value=len(expenses_df) - 1, value=0)
+                delete_index = st.number_input("Enter the ID of the expense to delete", min_value=1, max_value=expenses_df["ID"].max(), value=1)
                 if st.button("Delete Expense"):
-                    delete_expense(st.session_state.user_id, delete_index + 1)  # +1 because SQLite IDs start at 1
+                    delete_expense(st.session_state.user_id, delete_index)
                     st.success("Expense deleted successfully!")
                     st.experimental_rerun()  # Refresh the page
 
