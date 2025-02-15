@@ -148,6 +148,9 @@ def main():
                 background-color: #2E2E2E;
                 color: #FFFFFF;
             }
+            .stMarkdown, .stHeader, .stSubheader, .stText {
+                color: #FFFFFF !important;
+            }
             </style>
             """,
             unsafe_allow_html=True,
@@ -179,6 +182,9 @@ def main():
             .stSelectbox select {
                 background-color: #FFFFFF;
                 color: #000000;
+            }
+            .stMarkdown, .stHeader, .stSubheader, .stText {
+                color: #000000 !important;
             }
             </style>
             """,
