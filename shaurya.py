@@ -118,6 +118,7 @@ def main():
         st.markdown(
             """
             <style>
+            /* Dark Mode Styles */
             .stApp {
                 background-color: #1E1E1E;
                 color: #FFFFFF;
@@ -136,17 +137,17 @@ def main():
                 background-color: #4CAF50;
                 color: white;
             }
-            .stTextInput input {
-                background-color: #2E2E2E;
-                color: #FFFFFF;
+            .stTextInput input, .stTextInput label, .stTextInput div {
+                background-color: #2E2E2E !important;
+                color: #FFFFFF !important;
             }
-            .stNumberInput input {
-                background-color: #2E2E2E;
-                color: #FFFFFF;
+            .stNumberInput input, .stNumberInput label, .stNumberInput div {
+                background-color: #2E2E2E !important;
+                color: #FFFFFF !important;
             }
-            .stSelectbox select {
-                background-color: #2E2E2E;
-                color: #FFFFFF;
+            .stSelectbox select, .stSelectbox label, .stSelectbox div {
+                background-color: #2E2E2E !important;
+                color: #FFFFFF !important;
             }
             .stMarkdown, .stHeader, .stSubheader, .stText {
                 color: #FFFFFF !important;
@@ -159,6 +160,7 @@ def main():
         st.markdown(
             """
             <style>
+            /* Light Mode Styles */
             .stApp {
                 background-color: #FFFFFF;
                 color: #000000;
@@ -171,17 +173,17 @@ def main():
                 background-color: #4CAF50;
                 color: white;
             }
-            .stTextInput input {
-                background-color: #FFFFFF;
-                color: #000000;
+            .stTextInput input, .stTextInput label, .stTextInput div {
+                background-color: #FFFFFF !important;
+                color: #000000 !important;
             }
-            .stNumberInput input {
-                background-color: #FFFFFF;
-                color: #000000;
+            .stNumberInput input, .stNumberInput label, .stNumberInput div {
+                background-color: #FFFFFF !important;
+                color: #000000 !important;
             }
-            .stSelectbox select {
-                background-color: #FFFFFF;
-                color: #000000;
+            .stSelectbox select, .stSelectbox label, .stSelectbox div {
+                background-color: #FFFFFF !important;
+                color: #000000 !important;
             }
             .stMarkdown, .stHeader, .stSubheader, .stText {
                 color: #000000 !important;
